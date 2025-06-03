@@ -104,10 +104,17 @@ Control behavior using URL parameters:
 - `?position=widget` - Display as a collapsible widget (default)
 - `?position=inline` - Display as an inline component
 - `?teamId=YOUR_TEAM_ID` - Connect to a specific team context
+- `?apiUrl=YOUR_API_URL` - (Optional) Override the default API endpoint for chat messages
 
 Example:
 ```
-https://chat.blawby.com/?position=widget&teamId=acme-corp
+https://chat.blawby.com/?position=widget&teamId=acme-corp&apiUrl=https://compass-ts.paulchrisluke.workers.dev/query
+```
+
+If `apiUrl` is not provided, the chat UI will use the default endpoint:
+
+```
+https://compass-ts.paulchrisluke.workers.dev/query
 ```
 
 ### Integration with chat.blawby.com

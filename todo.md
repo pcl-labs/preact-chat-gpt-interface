@@ -150,6 +150,9 @@
      - Enable AI to proactively suggest scheduling ✅
      - Integrate with conversation flow seamlessly ✅
 
+
+2.5 intro question request selector and prioritu selector
+
 3. Accessibility improvements
    - Add keyboard navigation support
    - Improve screen reader compatibility

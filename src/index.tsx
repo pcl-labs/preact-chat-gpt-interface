@@ -77,6 +77,7 @@ export function App() {
 	const [position, setPosition] = useState<ChatPosition>('widget');
 	const [isOpen, setIsOpen] = useState(position === 'inline' ? true : false);
 	const [teamId, setTeamId] = useState<string>('demo');
+	const [apiUrl, setApiUrl] = useState<string>('https://compass-ts.paulchrisluke.workers.dev/query');
 	const messageListRef = useRef<HTMLDivElement>(null);
 	const [isRecording, setIsRecording] = useState(false);
 	const [isDragging, setIsDragging] = useState(false);
@@ -90,7 +91,7 @@ export function App() {
 			const urlParams = new URLSearchParams(window.location.search);
 			const positionParam = urlParams.get('position');
 			const teamIdParam = urlParams.get('teamId');
-			
+			const apiUrlParam = urlParams.get('apiUrl');
 			// Set position based on URL parameter
 			if (positionParam === 'widget' || positionParam === 'inline') {
 				setPosition(positionParam);
@@ -101,10 +102,13 @@ export function App() {
 					setIsOpen(false);
 				}
 			}
-
 			// Set teamId if available, otherwise keep the default "demo"
 			if (teamIdParam) {
 				setTeamId(teamIdParam);
+			}
+			// Set apiUrl if available, otherwise keep the default
+			if (apiUrlParam) {
+				setApiUrl(apiUrlParam);
 			}
 		}
 	}, []);
@@ -479,8 +483,8 @@ export function App() {
 				content: message
 			});
 			
-			// Make actual API call to ai.blawby.com
-			const apiEndpoint = `https://ai.blawby.com/api/chatbot?teamId=${encodeURIComponent(teamId)}`;
+			// Use configurable API endpoint
+			const apiEndpoint = `${apiUrl}?teamId=${encodeURIComponent(teamId)}`;
 			
 			// Set loading to false as we'll start receiving the response
 			setIsLoading(false);
