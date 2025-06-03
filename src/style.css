@@ -359,11 +359,6 @@ body {
 	overflow: visible;
 }
 
-.chat-container.inline .input-container {
-	max-width: none;
-	margin: 0;
-}
-
 .input-preview {
 	display: flex;
 	flex-wrap: wrap;
