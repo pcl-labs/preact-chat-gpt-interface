@@ -25,17 +25,17 @@
 @media (prefers-color-scheme: dark) {
 	:root {
 		/* Dark theme colors */
-		--bg-color: #1a1a1a;
-		--bg-color-rgb: 26, 26, 26;
+		--bg-color: #030712;
+		--bg-color-rgb: 3, 7, 18;
 		--text-color: #ffffff;
-		--message-bg-user: #2a2a2a;
-		--message-bg-ai: #1e1e1e;
-		--border-color: #2f2f2f;
-		--input-bg: #303030;
-		--hover-color: #2a2a2a;
-		--accent-color: #aaaaaa;
-		--skeleton-start: rgba(70, 70, 70, 0.1);
-		--skeleton-end: rgba(90, 90, 90, 0.3);
+		--message-bg-user: #111827;
+		--message-bg-ai: #0a0f1a;
+		--border-color: #10131a;
+		--input-bg: #0a0f1a;
+		--hover-color: #111827;
+		--accent-color: #64748b;
+		--skeleton-start: rgba(10, 15, 26, 0.1);
+		--skeleton-end: rgba(10, 15, 26, 0.3);
 	}
 }
 
@@ -78,7 +78,7 @@ body {
 	position: relative;
 	height: 100vh;
 	width: 100%;
-	max-width: 100%;
+	max-width: none;
 	margin: 0;
 	overflow: hidden;
 	background-color: var(--bg-color);
@@ -312,6 +312,11 @@ body {
 	-webkit-overflow-scrolling: touch;
 }
 
+.chat-container.inline .message-list {
+	max-width: none;
+	margin: 0;
+}
+
 .message-list:hover,
 .message-list:focus,
 .message-list:active {
@@ -361,6 +366,11 @@ body {
 	gap: 0.75rem;
 	height: auto;
 	overflow: visible;
+}
+
+.chat-container.inline .input-container {
+	max-width: none;
+	margin: 0;
 }
 
 .input-preview {
