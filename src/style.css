@@ -310,11 +310,6 @@ body {
 	-webkit-overflow-scrolling: touch;
 }
 
-.chat-container.inline .message-list {
-	max-width: none;
-	margin: 0;
-}
-
 .message-list:hover,
 .message-list:focus,
 .message-list:active {
