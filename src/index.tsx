@@ -1034,10 +1034,12 @@ export function App() {
                                                         onFileSelect={handleFileSelect}
                                                     />
 
-                                                    <LazyScheduleButton
-                                                        onClick={handleScheduleStart}
-                                                        disabled={isLoading}
-                                                    />
+                                                    {features.enableConsultation && (
+                                                        <LazyScheduleButton
+                                                            onClick={handleScheduleStart}
+                                                            disabled={isLoading}
+                                                        />
+                                                    )}
                                                 </div>
                                             )}
 
