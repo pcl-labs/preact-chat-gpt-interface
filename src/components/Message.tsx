@@ -202,7 +202,7 @@ const Message: FunctionComponent<MessageProps> = memo(({
 				) : (
 					/* Render message content as HTML from API (links, formatting, etc.) */
 					content && (
-						<div dangerouslySetInnerHTML={{ __html: content }} />
+						<div dangerouslySetInnerHTML={{ __html: marked(content) }} />
 					)
 				)}
 				
