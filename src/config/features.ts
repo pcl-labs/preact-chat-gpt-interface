@@ -23,12 +23,24 @@ interface FeatureFlags {
      * When false, file upload functionality will be hidden
      */
     enableFileAttachments: boolean;
+
+    /**
+     * Enable consultation feature (scheduling, consultation quick action)
+     */
+    enableConsultation: boolean;
+
+    /**
+     * Enable 'Learn about our services' quick action
+     */
+    enableServicesQuickAction: boolean;
 }
 
 const features: FeatureFlags = {
     enableAudioRecording: false, // Set to false to hide voice recording
     enableVideoRecording: false, // Not implemented yet
     enableFileAttachments: true, // File attachments are enabled
+    enableConsultation: false, // Consultation feature is disabled by default
+    enableServicesQuickAction: false, // Services quick action is disabled by default
 };
 
 // For development environment, you can override settings

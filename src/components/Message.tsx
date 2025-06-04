@@ -200,9 +200,9 @@ const Message: FunctionComponent<MessageProps> = memo(({
 						<span class="dot"></span>
 					</div>
 				) : (
-					/* Render message content first */
+					/* Render message content as HTML from API (links, formatting, etc.) */
 					content && (
-						<div dangerouslySetInnerHTML={{ __html: marked(content) }} />
+						<div dangerouslySetInnerHTML={{ __html: content }} />
 					)
 				)}
 				

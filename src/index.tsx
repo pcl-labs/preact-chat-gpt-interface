@@ -72,7 +72,7 @@ export function App() {
     const [isOpen, setIsOpen] = useState(position === "inline" ? true : false);
     const [teamId, setTeamId] = useState<string>("demo");
     const [apiUrl, setApiUrl] = useState<string>(
-        "https://compass-ts.paulchrisluke.workers.dev/query"
+        "https://compass-ts.paulchrisluke.workers.dev/chat"
     );
     const messageListRef = useRef<HTMLDivElement>(null);
     const [isRecording, setIsRecording] = useState(false);
@@ -80,6 +80,21 @@ export function App() {
 
     // Track drag counter for better handling of nested elements
     const dragCounter = useRef(0);
+
+    // Intro message config
+    const introMessage = {
+        content:
+            "Hello, I'm an AI assistant from Blawby. If we find something we can't solve, I'll help create a support case for you. How can I help?",
+        isUser: false,
+    };
+
+    // Insert intro message on initial load
+    useEffect(() => {
+        if (messages.length === 0) {
+            setMessages([introMessage]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Parse URL parameters for configuration
     useEffect(() => {
@@ -439,7 +454,11 @@ export function App() {
         }, 800);
     };
 
-    // Make real API calls to ai.blawby.com with SSE support
+    // Add state for sources/citations
+    const [lastSources, setLastSources] = useState<any[]>([]);
+    const [showSources, setShowSources] = useState(false);
+
+    // Update sendMessageToAPI to handle new API response structure
     const sendMessageToAPI = async (message: string, attachments: FileAttachment[] = []) => {
         setIsLoading(true);
 
@@ -451,10 +470,6 @@ export function App() {
                 files: attachments,
             };
 
-            setMessages((prev) => [...prev, userMessage]);
-            setInputValue("");
-            setPreviewFiles([]);
-
             // Add a placeholder AI message immediately that will be updated
             const placeholderId = Date.now().toString();
             const placeholderMessage: ChatMessage = {
@@ -463,42 +478,31 @@ export function App() {
                 id: placeholderId,
             };
 
-            setMessages((prev) => [...prev, placeholderMessage]);
+            setMessages((prev) => [...prev, userMessage, placeholderMessage]);
+            setInputValue("");
+            setPreviewFiles([]);
 
             // Check if this is a scheduled message
             const hasSchedulingIntent = detectSchedulingIntent(message);
 
-            // This simulates the AI detecting scheduling intent and responding
             if (hasSchedulingIntent) {
-                // Start typing after a short delay
                 setTimeout(() => {
                     setIsLoading(false);
-
-                    // Create a scheduling response using our utility
                     const aiResponse = createSchedulingResponse("initial");
-
-                    // Replace the placeholder message with the actual response
                     setMessages((prev) =>
                         prev.map((msg) =>
                             msg.id === placeholderId ? { ...aiResponse, id: placeholderId } : msg
                         )
                     );
                 }, 1000);
-                
                 return;
             }
-            
+
             // Use configurable API endpoint with debug info
-            console.log('API Configuration:', { apiUrl, teamId });
-            
-            // Try falling back to 'demo' if specified in URL
             const useFallbackTeamId = teamId !== 'demo' && window.location.search.includes('useFallback=true');
             const effectiveTeamId = useFallbackTeamId ? 'demo' : teamId;
-            
             const apiEndpoint = `${apiUrl}?teamId=${encodeURIComponent(effectiveTeamId)}`;
-            console.log('Using API endpoint:', apiEndpoint);
 
-            // Notify parent frame about API call attempt
             if (window.parent !== window) {
                 window.parent.postMessage(
                     {
@@ -510,10 +514,8 @@ export function App() {
                 );
             }
 
-            // Create a request payload with query parameter
             const requestPayload = { query: message };
-            console.log('Request payload:', JSON.stringify(requestPayload));
-            
+
             // Send the request with CORS support
             const response = await fetch(apiEndpoint, {
                 method: "POST",
@@ -532,65 +534,40 @@ export function App() {
                 );
             }
 
-            // Check if streaming response is available
-            if (response.body) {
-                const reader = response.body.getReader();
-                let aiResponseText = "";
-                
-                while (true) {
-                    const { done, value } = await reader.read();
-                    
-                    if (done) {
-                        break;
-                    }
-                    
-                    // Decode and append new chunk of text
-                    const text = new TextDecoder().decode(value);
-                    aiResponseText += text;
-                    
-                    // Update the placeholder message with the current text
-                    setMessages((prev) =>
-                        prev.map((msg) =>
-                            msg.id === placeholderId
-                                ? {
-                                    ...msg,
-                                    content: aiResponseText
-                                  }
-                                : msg
-                        )
-                    );
-                }
-            } else {
-                // Fallback for non-streaming responses
-                const data = await response.json();
-                const aiResponseText = data.message || data.content || data.response || "";
+            // Always expect a JSON response with 'message' and optional 'matches'
+            const data = await response.json();
+            console.log("[DEBUG] API response (full):", JSON.stringify(data, null, 2));
+            const aiResponseText = data.message || data.content || data.response || "";
+            const sources = Array.isArray(data.matches) ? data.matches : [];
 
-                // Update the placeholder message with the response
-                setMessages((prev) =>
-                    prev.map((msg) =>
-                        msg.id === placeholderId
-                            ? {
-                                  ...msg,
-                                  content: aiResponseText
-                              }
-                            : msg
-                    )
+            setLastSources(sources);
+            setShowSources(false);
+
+            // Log before updating placeholder
+            console.log("[DEBUG] placeholderId:", placeholderId);
+            console.log("[DEBUG] messages before update:", messages);
+            // Update the placeholder message with the response
+            setMessages((prev) => {
+                const updated = prev.map((msg) =>
+                    msg.id === placeholderId
+                        ? {
+                              ...msg,
+                              content: aiResponseText
+                          }
+                        : msg
                 );
-            }
-            
-            // Set loading state to false after processing response
+                console.log("[DEBUG] messages after update:", updated);
+                return updated;
+            });
+
             setIsLoading(false);
-            
         } catch (error) {
             console.error("Error sending message:", error);
             setIsLoading(false);
-
-            // Add error message
             const errorMessage: ChatMessage = {
                 content: "Sorry, there was an error processing your request. Please try again.",
                 isUser: false,
             };
-
             setMessages((prev) => [...prev, errorMessage]);
         }
     };
@@ -907,83 +884,45 @@ export function App() {
                 <ErrorBoundary>
                     {(position === "inline" || isOpen) && (
                         <main className="chat-main">
-                            {messages.length === 0 && (
-                                <div className="welcome-message">
-                                    <div className="welcome-card">
-                                        <div className="welcome-icon">
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                strokeWidth="1.5"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                            >
-                                                <rect
-                                                    x="3"
-                                                    y="3"
-                                                    width="18"
-                                                    height="18"
-                                                    rx="2"
-                                                    ry="2"
-                                                ></rect>
-                                                <path d="M9 15h6"></path>
-                                                <path d="M11 9h1"></path>
-                                                <path d="M12 9v3"></path>
-                                                <path d="M8 9h.01"></path>
-                                                <path d="M16 9h.01"></path>
-                                            </svg>
-                                        </div>
-                                        <h2>Legal AI Assistant</h2>
-                                        <p>
-                                            I'm an AI assistant designed to help you get started
-                                            with your case.
-                                        </p>
-                                        <div className="welcome-actions">
-                                            <p>How can I help today?</p>
-                                            <div className="welcome-buttons">
-                                                <button
-                                                    className="welcome-action-button primary"
-                                                    onClick={handleScheduleStart}
-                                                >
-                                                    Request a consultation
-                                                </button>
-                                                <button
-                                                    className="welcome-action-button"
-                                                    onClick={() => {
-                                                        const servicesMessage: ChatMessage = {
-                                                            content:
-                                                                "Tell me about your firm's services",
-                                                            isUser: true,
-                                                        };
-                                                        setMessages([servicesMessage]);
-                                                        setIsLoading(true);
-
-                                                        // Simulate AI response
-                                                        setTimeout(() => {
-                                                            const aiResponse: ChatMessage = {
-                                                                content:
-                                                                    "Our firm specializes in several practice areas including business law, intellectual property, contract review, and regulatory compliance. We offer personalized legal counsel to help businesses navigate complex legal challenges. Would you like more details about any specific service?",
-                                                                isUser: false,
-                                                            };
-                                                            setMessages((prev) => [
-                                                                ...prev,
-                                                                aiResponse,
-                                                            ]);
-                                                            setIsLoading(false);
-                                                        }, 1000);
-                                                    }}
-                                                >
-                                                    Learn about our services
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {/* Intro message and feature-flagged quick actions */}
+                            {messages.length === 1 && messages[0].content === introMessage.content && (
+                                <div className="intro-quick-actions">
+                                    {features.enableConsultation && (
+                                        <button
+                                            className="welcome-action-button primary"
+                                            onClick={handleScheduleStart}
+                                        >
+                                            Request a consultation
+                                        </button>
+                                    )}
+                                    {features.enableServicesQuickAction && (
+                                        <button
+                                            className="welcome-action-button"
+                                            onClick={() => {
+                                                const servicesMessage: ChatMessage = {
+                                                    content: "Tell me about your firm's services",
+                                                    isUser: true,
+                                                };
+                                                setMessages((prev) => [...prev, servicesMessage]);
+                                                setIsLoading(true);
+                                                setTimeout(() => {
+                                                    const aiResponse: ChatMessage = {
+                                                        content:
+                                                            "Our firm specializes in several practice areas including business law, intellectual property, contract review, and regulatory compliance. We offer personalized legal counsel to help businesses navigate complex legal challenges. Would you like more details about any specific service?",
+                                                        isUser: false,
+                                                    };
+                                                    setMessages((prev) => [...prev, aiResponse]);
+                                                    setIsLoading(false);
+                                                }, 1000);
+                                            }}
+                                        >
+                                            Learn about our services
+                                        </button>
+                                    )}
                                 </div>
                             )}
                             <VirtualMessageList
-                                messages={messages}
+                                messages={(() => { console.log('[DEBUG] rendering messages:', messages); return messages; })()}
                                 isLoading={isLoading}
                                 onDateSelect={handleDateSelect}
                                 onTimeOfDaySelect={handleTimeOfDaySelect}
