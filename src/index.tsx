@@ -59,6 +59,8 @@ interface ChatMessage {
     files?: FileAttachment[];
     scheduling?: SchedulingData;
     id?: string;
+    type?: string;
+    caseId?: string;
 }
 
 const ANIMATION_DURATION = 300;
@@ -837,16 +839,18 @@ export function App() {
             });
             if (!response.ok) throw new Error('Failed to create support case');
             const data = await response.json();
-            // 3. Add the prefilled message with the form button
+            // 3. Add a special message to render the form inline
             setMessages((prev) => [
                 ...prev,
                 {
-                    content: `I've filled out some of the case details for you below. Please check if everything is correct before submitting. <a href="${data.caseUrl}" target="_blank" class="case-form-link">View Support Case Form</a>`,
-                    isUser: false
+                    type: 'support-case-form',
+                    caseId: data.caseId, // use the returned caseId
+                    isUser: false,
+                    content: '',
                 }
             ]);
             setIsLoading(false);
-            // 4. After user clicks or after a delay, show feedback message
+            // 4. After a delay, show feedback message (optional, or can be handled by the form itself)
             setTimeout(() => {
                 setMessages((prev) => [
                     ...prev,

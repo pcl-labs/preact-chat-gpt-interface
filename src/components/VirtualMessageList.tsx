@@ -4,6 +4,7 @@ import Message from './Message';
 import { memo } from 'preact/compat';
 import { debounce } from '../utils/debounce';
 import { ErrorBoundary } from './ErrorBoundary';
+import SupportCaseForm from './SupportCaseForm';
 
 interface FileAttachment {
     name: string;
@@ -26,6 +27,8 @@ interface ChatMessage {
     files?: FileAttachment[];
     scheduling?: SchedulingData;
     id?: string;
+    type?: string;
+    caseId?: string;
 }
 
 interface VirtualMessageListProps {
@@ -138,20 +141,29 @@ const VirtualMessageList: FunctionComponent<VirtualMessageListProps> = ({
                 </div>
             )}
             <ErrorBoundary>
-                {visibleMessages.map((message, index) => (
-                    <Message
-                        key={startIndex + index}
-                        content={message.content}
-                        isUser={message.isUser}
-                        files={message.files}
-                        scheduling={message.scheduling}
-                        onDateSelect={onDateSelect}
-                        onTimeOfDaySelect={onTimeOfDaySelect}
-                        onTimeSlotSelect={onTimeSlotSelect}
-                        onRequestMoreDates={onRequestMoreDates}
-                        isLoading={isLoading && index === visibleMessages.length - 1 && !message.isUser && !message.content}
-                    />
-                ))}
+                {visibleMessages.map((message, index) => {
+                    if (message.type === 'support-case-form' && message.caseId) {
+                        return (
+                            <div class="message message-ai" key={startIndex + index}>
+                                <SupportCaseForm caseId={message.caseId} />
+                            </div>
+                        );
+                    }
+                    return (
+                        <Message
+                            key={startIndex + index}
+                            content={message.content}
+                            isUser={message.isUser}
+                            files={message.files}
+                            scheduling={message.scheduling}
+                            onDateSelect={onDateSelect}
+                            onTimeOfDaySelect={onTimeOfDaySelect}
+                            onTimeSlotSelect={onTimeSlotSelect}
+                            onRequestMoreDates={onRequestMoreDates}
+                            isLoading={isLoading && index === visibleMessages.length - 1 && !message.isUser && !message.content}
+                        />
+                    );
+                })}
             </ErrorBoundary>
         </div>
     );
