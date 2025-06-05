@@ -9,7 +9,6 @@ interface PrefilledData {
   email?: string;
   subject?: string;
   description?: string;
-  additionalDetails?: string;
 }
 
 // Use the same API base URL logic as in index.tsx
@@ -36,8 +35,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
         setForm({
           email: data.email || '',
           subject: data.subject || '',
-          description: data.description || '',
-          additionalDetails: data.additionalDetails || ''
+          description: data.description || ''
         });
         setLoading(false);
       })
@@ -100,11 +98,15 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
   if (error) return <div class="card error-message">{error}</div>;
 
   return (
-    <div class="card support-case-form-card">
+    <div class="card support-case-form-card" style={{ maxWidth: 400, margin: '0 auto', padding: '2rem 1.5rem', borderRadius: '1rem', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
       {!submitted ? (
-        <form class="support-case-form" onSubmit={handleSubmit}>
-          <h2>Review and Submit Your Support Case</h2>
-          <label>Email<span class="required">*</span>
+        <form class="support-case-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendar-icon"><rect x="3" y="7" width="18" height="13" rx="2" ry="2"></rect><path d="M16 3h-8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"></path></svg>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Submit a Support Case</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontWeight: 500 }}>Email<span style={{ color: 'var(--accent-color)' }}>*</span></label>
             <input
               type="email"
               name="email"
@@ -112,9 +114,11 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
               onInput={handleChange}
               required
               class="form-input"
+              style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)' }}
             />
-          </label>
-          <label>Subject<span class="required">*</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontWeight: 500 }}>Subject<span style={{ color: 'var(--accent-color)' }}>*</span></label>
             <input
               type="text"
               name="subject"
@@ -122,9 +126,11 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
               onInput={handleChange}
               required
               class="form-input"
+              style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)' }}
             />
-          </label>
-          <label>Description<span class="required">*</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontWeight: 500 }}>Description<span style={{ color: 'var(--accent-color)' }}>*</span></label>
             <textarea
               name="description"
               value={form.description || ''}
@@ -132,38 +138,34 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
               required
               class="form-input"
               rows={4}
+              style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)' }}
             />
-          </label>
-          <label>Additional Details
-            <textarea
-              name="additionalDetails"
-              value={form.additionalDetails || ''}
-              onInput={handleChange}
-              class="form-input"
-              rows={2}
-            />
-          </label>
-          <button type="submit" class="schedule-button" disabled={submitting}>
+          </div>
+          <button type="submit" class="schedule-button" style={{ marginTop: '0.5rem' }} disabled={submitting}>
             {submitting ? 'Submitting...' : 'Submit Support Case'}
           </button>
           {error && <div class="error-message">{error}</div>}
         </form>
       ) : (
-        <div class="support-case-confirmation">
-          <h3>Thank you!</h3>
-          <p>Your support case has been submitted.</p>
+        <div class="support-case-confirmation" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendar-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Thank you!</h3>
+            <p style={{ color: 'var(--accent-color)', margin: 0 }}>Your support case has been submitted.</p>
+          </div>
           {!feedbackSubmitted ? (
-            <form class="feedback-form" onSubmit={handleFeedbackSubmit}>
-              <div class="feedback-label">How satisfied were you with your AI support experience?</div>
-              <div class="feedback-options">
+            <form class="feedback-form" onSubmit={handleFeedbackSubmit} style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+              <div class="feedback-label" style={{ fontWeight: 500, marginBottom: '0.5rem' }}>How satisfied were you with your AI support experience?</div>
+              <div class="feedback-options" style={{ display: 'flex', gap: '0.5rem' }}>
                 {[1,2,3,4,5].map(n => (
                   <button
                     type="button"
                     class={`feedback-emoji${feedback === n ? ' selected' : ''}`}
                     onClick={() => handleFeedback(n)}
                     aria-label={`Rating ${n}`}
+                    style={{ fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', outline: feedback === n ? '2px solid var(--accent-color)' : 'none', borderRadius: '50%' }}
                   >
-                    {['😡','��','😐','🙂','😃'][n-1]}
+                    {['😡','🙁','😐','🙂','😃'][n-1]}
                   </button>
                 ))}
               </div>
@@ -173,13 +175,14 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
                 value={feedbackComment}
                 onInput={e => setFeedbackComment((e.target as HTMLTextAreaElement).value)}
                 rows={2}
+                style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)', width: '100%' }}
               />
-              <button type="submit" class="schedule-button" disabled={!feedback}>
+              <button type="submit" class="schedule-button" style={{ minWidth: 120 }} disabled={!feedback}>
                 Submit Feedback
               </button>
             </form>
           ) : (
-            <div class="feedback-thankyou">Thank you for your feedback!</div>
+            <div class="feedback-thankyou" style={{ color: 'var(--accent-color)', marginTop: '1rem' }}>Thank you for your feedback!</div>
           )}
         </div>
       )}
