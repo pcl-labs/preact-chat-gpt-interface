@@ -1,4 +1,5 @@
-import { FunctionalComponent, useEffect, useState } from 'preact';
+import { FunctionalComponent } from 'preact';
+import { useEffect, useState } from 'preact/hooks';
 
 interface SupportCaseFormProps {
   caseId: string;
@@ -10,6 +11,11 @@ interface PrefilledData {
   description?: string;
   additionalDetails?: string;
 }
+
+// Use the same API base URL logic as in index.tsx
+const apiBase = import.meta.env.PROD
+  ? 'https://compass-ts.paulchrisluke.workers.dev'
+  : 'http://localhost:5173';
 
 const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) => {
   const [form, setForm] = useState<PrefilledData>({});
@@ -24,7 +30,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
   // Load prefilled data
   useEffect(() => {
     setLoading(true);
-    fetch(`/support-case/${caseId}`)
+    fetch(`${apiBase}/support-case/${caseId}`)
       .then(res => res.json())
       .then(data => {
         setForm({
@@ -157,7 +163,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
                     onClick={() => handleFeedback(n)}
                     aria-label={`Rating ${n}`}
                   >
-                    {['😡','🙁','😐','🙂','😃'][n-1]}
+                    {['😡','��','😐','🙂','😃'][n-1]}
                   </button>
                 ))}
               </div>
