@@ -850,9 +850,17 @@ export function App() {
 
     // Handle user input for support case steps
     const handleSupportCaseInput = async (input: string) => {
+        if (input.trim().toLowerCase() === 'cancel') {
+            setSupportCaseStep(null);
+            setSupportCaseData({});
+            setSupportCaseError(null);
+            setSupportCaseSuccess(null);
+            setMessages((prev) => [...prev, { content: 'Support case creation canceled. How else can I help you?', isUser: false }]);
+            return;
+        }
         if (supportCaseStep === 'name') {
             if (!isValidName(input)) {
-                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "That doesn't look like a valid name. Please enter your full name.", isUser: false }]);
+                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "That doesn't look like a valid name. Please enter your full name or type 'cancel' to exit.", isUser: false }]);
                 return;
             }
             setSupportCaseData((prev) => ({ ...prev, name: input }));
@@ -860,7 +868,7 @@ export function App() {
             setSupportCaseStep('email');
         } else if (supportCaseStep === 'email') {
             if (!isValidEmail(input)) {
-                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "That doesn't look like a valid email. Please enter a valid email address.", isUser: false }]);
+                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "That doesn't look like a valid email. Please enter a valid email address or type 'cancel' to exit.", isUser: false }]);
                 return;
             }
             setSupportCaseData((prev) => ({ ...prev, email: input }));
@@ -868,7 +876,7 @@ export function App() {
             setSupportCaseStep('message');
         } else if (supportCaseStep === 'message') {
             if (!isValidMessage(input)) {
-                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "Please provide more details about your issue or question.", isUser: false }]);
+                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "Please provide more details about your issue or question, or type 'cancel' to exit.", isUser: false }]);
                 return;
             }
             setSupportCaseData((prev) => ({ ...prev, message: input }));
