@@ -64,6 +64,11 @@ interface ChatMessage {
 const ANIMATION_DURATION = 300;
 const RESIZE_DEBOUNCE_DELAY = 100;
 
+// API base URL for support case endpoints
+const supportCaseApiBase = import.meta.env.PROD
+    ? 'https://compass-ts.paulchrisluke.workers.dev'
+    : 'http://localhost:8787';
+
 export function App() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState("");
@@ -825,7 +830,7 @@ export function App() {
             const chatHistory = messages.map(m => ({ role: m.isUser ? 'user' : 'assistant', content: m.content }));
             const pageUrl = window.location.pathname;
             // TODO: Add any other fields as needed
-            const response = await fetch('/support-case/create', {
+            const response = await fetch(`${supportCaseApiBase}/support-case/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId, chatHistory, pageUrl })
