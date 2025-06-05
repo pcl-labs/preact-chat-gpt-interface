@@ -11,6 +11,7 @@ import createLazyComponent from "./utils/LazyComponent";
 import features from "./config/features";
 import { detectSchedulingIntent, createSchedulingResponse } from "./utils/scheduling";
 import "./style.css";
+import CreateCaseButton from './components/CreateCaseButton';
 
 // Create lazy-loaded components
 const LazyMediaControls = createLazyComponent(
@@ -809,6 +810,56 @@ export function App() {
         };
     }, []);
 
+    // Add the Create Case flow logic
+    const handleCreateCase = async () => {
+        // 1. Add the first message
+        setMessages((prev) => [
+            ...prev,
+            { content: "I'll help you create a support case. Please wait a moment.", isUser: false }
+        ]);
+        setIsLoading(true);
+        // 2. Call the API to create the case
+        try {
+            // Gather context for the API
+            const userId = teamId; // or get from auth context
+            const chatHistory = messages.map(m => ({ role: m.isUser ? 'user' : 'assistant', content: m.content }));
+            const pageUrl = window.location.pathname;
+            // TODO: Add any other fields as needed
+            const response = await fetch('/support-case/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, chatHistory, pageUrl })
+            });
+            if (!response.ok) throw new Error('Failed to create support case');
+            const data = await response.json();
+            // 3. Add the prefilled message with the form button
+            setMessages((prev) => [
+                ...prev,
+                {
+                    content: `I've filled out some of the case details for you below. Please check if everything is correct before submitting. <a href="${data.caseUrl}" target="_blank" class="case-form-link">View Support Case Form</a>`,
+                    isUser: false
+                }
+            ]);
+            setIsLoading(false);
+            // 4. After user clicks or after a delay, show feedback message
+            setTimeout(() => {
+                setMessages((prev) => [
+                    ...prev,
+                    {
+                        content: 'How satisfied were you with your AI support experience?\n\n[1] 😡 [2] 🙁 [3] 😐 [4] 🙂 [5] 😃',
+                        isUser: false
+                    }
+                ]);
+            }, 2000);
+        } catch (err) {
+            setIsLoading(false);
+            setMessages((prev) => [
+                ...prev,
+                { content: 'Sorry, there was an error creating your support case. Please try again later.', isUser: false }
+            ]);
+        }
+    };
+
     return (
         <>
             {isDragging && (
@@ -1034,10 +1085,15 @@ export function App() {
                                                         onCameraCapture={handleCameraCapture}
                                                         onFileSelect={handleFileSelect}
                                                     />
-
                                                     {features.enableConsultation && (
                                                         <LazyScheduleButton
                                                             onClick={handleScheduleStart}
+                                                            disabled={isLoading}
+                                                        />
+                                                    )}
+                                                    {features.enableCreateCase && messages.length > 1 && (
+                                                        <CreateCaseButton
+                                                            onClick={handleCreateCase}
                                                             disabled={isLoading}
                                                         />
                                                     )}

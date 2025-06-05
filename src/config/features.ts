@@ -33,6 +33,11 @@ interface FeatureFlags {
      * Enable 'Learn about our services' quick action
      */
     enableServicesQuickAction: boolean;
+
+    /**
+     * Enable Create Support Case button
+     */
+    enableCreateCase: boolean;
 }
 
 const features: FeatureFlags = {
@@ -41,6 +46,7 @@ const features: FeatureFlags = {
     enableFileAttachments: true, // File attachments are enabled
     enableConsultation: false, // Consultation feature is disabled by default
     enableServicesQuickAction: false, // Services quick action is disabled by default
+    enableCreateCase: true, // Create Support Case button is enabled
 };
 
 // For development environment, you can override settings
