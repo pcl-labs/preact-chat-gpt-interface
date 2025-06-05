@@ -889,7 +889,7 @@ export function App() {
                 if (!res.ok) throw new Error('Failed to submit support case.');
                 const data = await res.json().catch(() => ({}));
                 setSupportCaseSuccess(data.message || 'Your support case has been submitted.');
-                setMessages((prev) => [...prev, { content: data.message || 'Thank you! Your support case has been submitted.', isUser: false }]);
+                setMessages((prev) => [...prev, { content: (data.message || 'Thank you! Your support case has been submitted.') + '\n\nPlease check your email for a response from our support team. If you don\'t see it soon, check your spam or promotions folder.', isUser: false }]);
             } catch (err) {
                 setSupportCaseError('There was an error submitting your support case.');
                 setMessages((prev) => [...prev, { content: 'There was an error submitting your support case.', isUser: false }]);
