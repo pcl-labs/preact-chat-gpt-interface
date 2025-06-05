@@ -7,6 +7,7 @@ interface SupportCaseFormProps {
 }
 
 interface PrefilledData {
+  name?: string;
   email?: string;
   subject?: string;
   description?: string;
@@ -35,6 +36,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
       .then(res => res.json())
       .then(data => {
         setForm({
+          name: data.name || '',
           email: data.email || '',
           subject: data.subject || '',
           description: data.description || ''
@@ -60,8 +62,9 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...form,
-          caseId,
+          name: form.name,
+          email: form.email,
+          message: `${form.subject ? form.subject + '\n\n' : ''}${form.description || ''}`.trim()
         })
       });
       if (!res.ok) throw new Error('Failed to submit support case.');
@@ -94,19 +97,30 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
   };
 
   // --- UI ---
-  if (loading) return <div class="card" style={{ width: '100%' }}><div class="loading-indicator"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>;
-  if (error) return <div class="card error-message" style={{ width: '100%' }}>{error}</div>;
+  if (loading) return <div class="card support-case-form-card"><div class="loading-indicator"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>;
+  if (error) return <div class="card support-case-form-card error-message">{error}</div>;
 
   return (
-    <div class="card support-case-form-card" style={{ width: '100%', padding: '2rem 1.5rem', borderRadius: '1rem', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+    <div class="card support-case-form-card">
       {!submitted ? (
-        <form class="support-case-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendar-icon"><rect x="3" y="7" width="18" height="13" rx="2" ry="2"></rect><path d="M16 3h-8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"></path></svg>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Submit a Support Case</h2>
+        <form class="support-case-form" onSubmit={handleSubmit}>
+          <div class="support-case-form-header">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="calendar-icon"><rect x="3" y="7" width="18" height="13" rx="2" ry="2"></rect><path d="M16 3h-8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"></path></svg>
+            <h2 class="support-case-form-title">Submit a Support Case</h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 500 }}>Email<span style={{ color: 'var(--accent-color)' }}>*</span></label>
+          <div class="support-case-form-field">
+            <label class="support-case-form-label">Name<span class="required">*</span></label>
+            <input
+              type="text"
+              name="name"
+              value={form.name || ''}
+              onInput={handleChange}
+              required
+              class="form-input"
+            />
+          </div>
+          <div class="support-case-form-field">
+            <label class="support-case-form-label">Email<span class="required">*</span></label>
             <input
               type="email"
               name="email"
@@ -114,11 +128,10 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
               onInput={handleChange}
               required
               class="form-input"
-              style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)' }}
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 500 }}>Subject<span style={{ color: 'var(--accent-color)' }}>*</span></label>
+          <div class="support-case-form-field">
+            <label class="support-case-form-label">Subject<span class="required">*</span></label>
             <input
               type="text"
               name="subject"
@@ -126,11 +139,10 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
               onInput={handleChange}
               required
               class="form-input"
-              style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)' }}
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <label style={{ fontWeight: 500 }}>Description<span style={{ color: 'var(--accent-color)' }}>*</span></label>
+          <div class="support-case-form-field">
+            <label class="support-case-form-label">Description<span class="required">*</span></label>
             <textarea
               name="description"
               value={form.description || ''}
@@ -138,32 +150,30 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
               required
               class="form-input"
               rows={4}
-              style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)' }}
             />
           </div>
-          <button type="submit" class="schedule-button" style={{ marginTop: '0.5rem' }} disabled={submitting}>
+          <button type="submit" class="schedule-button" disabled={submitting}>
             {submitting ? 'Submitting...' : 'Submit Support Case'}
           </button>
           {error && <div class="error-message">{error}</div>}
         </form>
       ) : (
-        <div class="support-case-confirmation" style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendar-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Thank you!</h3>
-            <p style={{ color: 'var(--accent-color)', margin: 0 }}>{successMessage || 'Your support case has been submitted.'}</p>
+        <div class="support-case-confirmation">
+          <div class="support-case-form-header" style={{ justifyContent: 'center' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="calendar-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>
           </div>
+          <h3 class="support-case-form-title" style={{ textAlign: 'center' }}>Thank you!</h3>
+          <p class="feedback-label" style={{ textAlign: 'center' }}>{successMessage || 'Your support case has been submitted.'}</p>
           {!feedbackSubmitted ? (
-            <div class="feedback-form" style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
-              <div class="feedback-label" style={{ fontWeight: 500, marginBottom: '0.5rem' }}>How satisfied were you with your AI support experience?</div>
-              <div class="feedback-options" style={{ display: 'flex', gap: '0.5rem' }}>
+            <div class="feedback-form">
+              <div class="feedback-label">How satisfied were you with your AI support experience?</div>
+              <div class="feedback-options">
                 {[1,2,3,4,5].map(n => (
                   <button
                     type="button"
                     class={`feedback-emoji${feedback === n ? ' selected' : ''}`}
                     onClick={() => handleFeedback(n)}
                     aria-label={`Rating ${n}`}
-                    style={{ fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', outline: feedback === n ? '2px solid var(--accent-color)' : 'none', borderRadius: '50%' }}
                   >
                     {['😡','🙁','😐','🙂','😃'][n-1]}
                   </button>
@@ -175,12 +185,11 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
                 value={feedbackComment}
                 onInput={e => setFeedbackComment((e.target as HTMLTextAreaElement).value)}
                 rows={2}
-                style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)', width: '100%' }}
                 disabled={feedbackSubmitted}
               />
             </div>
           ) : (
-            <div class="feedback-thankyou" style={{ color: 'var(--accent-color)', marginTop: '1rem' }}>Thank you for your feedback!</div>
+            <div class="feedback-thankyou">Thank you for your feedback!</div>
           )}
         </div>
       )}
