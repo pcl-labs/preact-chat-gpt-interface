@@ -119,3 +119,30 @@ If `apiUrl` is not provided, the chat UI will use the default endpoint:
 ```
 https://compass-ts.paulchrisluke.workers.dev/query
 ```
+
+## 🛠️ Build & Deploy
+
+### Local Development
+
+```sh
+npm install
+npm run dev
+```
+
+### Production Build
+
+```sh
+npm run build
+```
+
+This will generate the production-ready files in the `dist/` directory.
+
+### Deploy to Cloudflare Pages
+
+**Always deploy the `dist/` directory:**
+
+```sh
+npx wrangler pages deploy ./dist --project-name=preact-chat-gpt-interface --branch=main
+```
+
+If you deploy the `public/` directory by mistake, your latest changes will not appear!

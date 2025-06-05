@@ -86,6 +86,11 @@ export function App() {
     const [isRecording, setIsRecording] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [chatEnded, setChatEnded] = useState(false);
+    const [supportCaseStep, setSupportCaseStep] = useState<null | 'name' | 'email' | 'message' | 'submitted'>(null);
+    const [supportCaseData, setSupportCaseData] = useState<{ name?: string; email?: string; message?: string }>({});
+    const [supportCaseLoading, setSupportCaseLoading] = useState(false);
+    const [supportCaseError, setSupportCaseError] = useState<string | null>(null);
+    const [supportCaseSuccess, setSupportCaseSuccess] = useState<string | null>(null);
 
     // Track drag counter for better handling of nested elements
     const dragCounter = useRef(0);
@@ -584,6 +589,12 @@ export function App() {
 
     // Update handleSubmit to use the new API function
     const handleSubmit = () => {
+        if (supportCaseStep) {
+            if (!inputValue.trim()) return;
+            handleSupportCaseInput(inputValue.trim());
+            setInputValue("");
+            return;
+        }
         if (!inputValue.trim() && previewFiles.length === 0) return;
 
         const placeholderId = Date.now().toString();
@@ -820,53 +831,56 @@ export function App() {
 
     // Add the Create Case flow logic
     const handleCreateCase = async () => {
-        // 1. Add the first message
+        // Start conversational support case flow
+        setSupportCaseStep('name');
+        setSupportCaseData({});
+        setSupportCaseError(null);
+        setSupportCaseSuccess(null);
         setMessages((prev) => [
             ...prev,
-            { content: "I'll help you create a support case. Please wait a moment.", isUser: false }
+            { content: "I'll help you create a support case. Let's get started.", isUser: false }
         ]);
-        setIsLoading(true);
-        // 2. Call the API to create the case
-        try {
-            // Gather context for the API
-            const userId = teamId; // or get from auth context
-            const chatHistory = messages.map(m => ({ role: m.isUser ? 'user' : 'assistant', content: m.content }));
-            const pageUrl = window.location.pathname;
-            // TODO: Add any other fields as needed
-            const response = await fetch(`${supportCaseApiBase}/support-case/create`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, chatHistory, pageUrl })
-            });
-            if (!response.ok) throw new Error('Failed to create support case');
-            const data = await response.json();
-            // 3. Add a special message to render the form inline
-            setMessages((prev) => [
-                ...prev,
-                {
-                    type: 'support-case-form',
-                    caseId: data.caseId, // use the returned caseId
-                    isUser: false,
-                    content: '',
-                }
-            ]);
-            setIsLoading(false);
-            // 4. After a delay, show feedback message (optional, or can be handled by the form itself)
-            setTimeout(() => {
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        content: 'How satisfied were you with your AI support experience?\n\n[1] 😡 [2] 🙁 [3] 😐 [4] 🙂 [5] 😃',
-                        isUser: false
-                    }
-                ]);
-            }, 2000);
-        } catch (err) {
-            setIsLoading(false);
-            setMessages((prev) => [
-                ...prev,
-                { content: 'Sorry, there was an error creating your support case. Please try again later.', isUser: false }
-            ]);
+    };
+
+    // Handle user input for support case steps
+    const handleSupportCaseInput = async (input: string) => {
+        if (supportCaseStep === 'name') {
+            setSupportCaseData((prev) => ({ ...prev, name: input }));
+            setMessages((prev) => [...prev, { content: input, isUser: true }]);
+            setSupportCaseStep('email');
+            setMessages((prev) => [...prev, { content: 'What is your email address?', isUser: false }]);
+        } else if (supportCaseStep === 'email') {
+            setSupportCaseData((prev) => ({ ...prev, email: input }));
+            setMessages((prev) => [...prev, { content: input, isUser: true }]);
+            setSupportCaseStep('message');
+            setMessages((prev) => [...prev, { content: 'Please describe your issue or question.', isUser: false }]);
+        } else if (supportCaseStep === 'message') {
+            setSupportCaseData((prev) => ({ ...prev, message: input }));
+            setMessages((prev) => [...prev, { content: input, isUser: true }]);
+            setSupportCaseStep('submitted');
+            setSupportCaseLoading(true);
+            setMessages((prev) => [...prev, { content: 'Submitting your support case...', isUser: false }]);
+            // Submit to API
+            try {
+                const res = await fetch(`${supportCaseApiBase}/api/help-form`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: supportCaseData.name,
+                        email: supportCaseData.email,
+                        message: input
+                    })
+                });
+                if (!res.ok) throw new Error('Failed to submit support case.');
+                const data = await res.json().catch(() => ({}));
+                setSupportCaseSuccess(data.message || 'Your support case has been submitted.');
+                setMessages((prev) => [...prev, { content: data.message || 'Thank you! Your support case has been submitted.', isUser: false }]);
+            } catch (err) {
+                setSupportCaseError('There was an error submitting your support case.');
+                setMessages((prev) => [...prev, { content: 'There was an error submitting your support case.', isUser: false }]);
+            } finally {
+                setSupportCaseLoading(false);
+            }
         }
     };
 
