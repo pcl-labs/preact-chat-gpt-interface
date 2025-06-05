@@ -9,8 +9,7 @@ interface SupportCaseFormProps {
 interface PrefilledData {
   name?: string;
   email?: string;
-  subject?: string;
-  description?: string;
+  message?: string;
 }
 
 // Use the same API base URL logic as in index.tsx
@@ -38,8 +37,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
         setForm({
           name: data.name || '',
           email: data.email || '',
-          subject: data.subject || '',
-          description: data.description || ''
+          message: data.message || ''
         });
         setLoading(false);
       })
@@ -64,7 +62,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
         body: JSON.stringify({
           name: form.name,
           email: form.email,
-          message: `${form.subject ? form.subject + '\n\n' : ''}${form.description || ''}`.trim()
+          message: form.message
         })
       });
       if (!res.ok) throw new Error('Failed to submit support case.');
@@ -101,12 +99,12 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
   if (error) return <div class="card support-case-form-card error-message">{error}</div>;
 
   return (
-    <div class="card support-case-form-card">
+    <div class="time-of-day-selector support-case-form-card">
       {!submitted ? (
         <form class="support-case-form" onSubmit={handleSubmit}>
-          <div class="support-case-form-header">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="calendar-icon"><rect x="3" y="7" width="18" height="13" rx="2" ry="2"></rect><path d="M16 3h-8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"></path></svg>
-            <h2 class="support-case-form-title">Submit a Support Case</h2>
+          <div class="time-selector-title support-case-form-header">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class="calendar-icon"><rect x="3" y="7" width="18" height="13" rx="2" ry="2"></rect><path d="M16 3h-8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"></path></svg>
+            <h3 class="support-case-form-title">Submit a Support Case</h3>
           </div>
           <div class="support-case-form-field">
             <label class="support-case-form-label">Name<span class="required">*</span></label>
@@ -131,21 +129,10 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
             />
           </div>
           <div class="support-case-form-field">
-            <label class="support-case-form-label">Subject<span class="required">*</span></label>
-            <input
-              type="text"
-              name="subject"
-              value={form.subject || ''}
-              onInput={handleChange}
-              required
-              class="form-input"
-            />
-          </div>
-          <div class="support-case-form-field">
-            <label class="support-case-form-label">Description<span class="required">*</span></label>
+            <label class="support-case-form-label">Message<span class="required">*</span></label>
             <textarea
-              name="description"
-              value={form.description || ''}
+              name="message"
+              value={form.message || ''}
               onInput={handleChange}
               required
               class="form-input"
@@ -160,7 +147,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, on
       ) : (
         <div class="support-case-confirmation">
           <div class="support-case-form-header" style={{ justifyContent: 'center' }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="calendar-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" class="calendar-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>
           </div>
           <h3 class="support-case-form-title" style={{ textAlign: 'center' }}>Thank you!</h3>
           <p class="feedback-label" style={{ textAlign: 'center' }}>{successMessage || 'Your support case has been submitted.'}</p>
