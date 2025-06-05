@@ -482,20 +482,21 @@ export function App() {
             setInputValue("");
             setPreviewFiles([]);
 
-            // Check if this is a scheduled message
-            const hasSchedulingIntent = detectSchedulingIntent(message);
-
-            if (hasSchedulingIntent) {
-                setTimeout(() => {
-                    setIsLoading(false);
-                    const aiResponse = createSchedulingResponse("initial");
-                    setMessages((prev) =>
-                        prev.map((msg) =>
-                            msg.id === placeholderId ? { ...aiResponse, id: placeholderId } : msg
-                        )
-                    );
-                }, 1000);
-                return;
+            // Consultation flow is fully feature-flagged
+            if (features.enableConsultation) {
+                const hasSchedulingIntent = detectSchedulingIntent(message);
+                if (hasSchedulingIntent) {
+                    setTimeout(() => {
+                        setIsLoading(false);
+                        const aiResponse = createSchedulingResponse("initial");
+                        setMessages((prev) =>
+                            prev.map((msg) =>
+                                msg.id === placeholderId ? { ...aiResponse, id: placeholderId } : msg
+                            )
+                        );
+                    }, 1000);
+                    return;
+                }
             }
 
             // Use configurable API endpoint with debug info
