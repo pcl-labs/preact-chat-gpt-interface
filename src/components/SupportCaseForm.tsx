@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 
 interface SupportCaseFormProps {
   caseId: string;
+  onFeedbackComplete?: () => void;
 }
 
 interface PrefilledData {
@@ -16,7 +17,7 @@ const apiBase = import.meta.env.PROD
   ? 'https://compass-ts.paulchrisluke.workers.dev'
   : 'http://localhost:5173';
 
-const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) => {
+const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId, onFeedbackComplete }) => {
   const [form, setForm] = useState<PrefilledData>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -25,6 +26,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
   const [feedback, setFeedback] = useState<number | null>(null);
   const [feedbackComment, setFeedbackComment] = useState('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Load prefilled data
   useEffect(() => {
@@ -54,7 +56,7 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch('/api/help-form', {
+      const res = await fetch(`${apiBase}/api/help-form`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -63,6 +65,8 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
         })
       });
       if (!res.ok) throw new Error('Failed to submit support case.');
+      const data = await res.json().catch(() => ({}));
+      setSuccessMessage(data.message || 'Your support case has been submitted.');
       setSubmitted(true);
     } catch (err) {
       setError('There was an error submitting your support case.');
@@ -73,32 +77,28 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
 
   const handleFeedback = async (rating: number) => {
     setFeedback(rating);
-  };
-
-  const handleFeedbackSubmit = async (e: Event) => {
-    e.preventDefault();
+    // Immediately submit feedback and end chat
     try {
-      await fetch('/support-case/feedback', {
+      await fetch(`${apiBase}/support-case/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           caseId,
-          rating: feedback,
+          rating,
           comments: feedbackComment
         })
       });
-      setFeedbackSubmitted(true);
-    } catch {
-      // ignore feedback errors
-    }
+    } catch {}
+    setFeedbackSubmitted(true);
+    if (typeof onFeedbackComplete === 'function') onFeedbackComplete();
   };
 
   // --- UI ---
-  if (loading) return <div class="card"><div class="loading-indicator"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>;
-  if (error) return <div class="card error-message">{error}</div>;
+  if (loading) return <div class="card" style={{ width: '100%' }}><div class="loading-indicator"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>;
+  if (error) return <div class="card error-message" style={{ width: '100%' }}>{error}</div>;
 
   return (
-    <div class="card support-case-form-card" style={{ maxWidth: 400, margin: '0 auto', padding: '2rem 1.5rem', borderRadius: '1rem', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+    <div class="card support-case-form-card" style={{ width: '100%', padding: '2rem 1.5rem', borderRadius: '1rem', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
       {!submitted ? (
         <form class="support-case-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
@@ -151,10 +151,10 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="calendar-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M9 16l2 2 4-4"></path></svg>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Thank you!</h3>
-            <p style={{ color: 'var(--accent-color)', margin: 0 }}>Your support case has been submitted.</p>
+            <p style={{ color: 'var(--accent-color)', margin: 0 }}>{successMessage || 'Your support case has been submitted.'}</p>
           </div>
           {!feedbackSubmitted ? (
-            <form class="feedback-form" onSubmit={handleFeedbackSubmit} style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+            <div class="feedback-form" style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
               <div class="feedback-label" style={{ fontWeight: 500, marginBottom: '0.5rem' }}>How satisfied were you with your AI support experience?</div>
               <div class="feedback-options" style={{ display: 'flex', gap: '0.5rem' }}>
                 {[1,2,3,4,5].map(n => (
@@ -176,11 +176,9 @@ const SupportCaseForm: FunctionalComponent<SupportCaseFormProps> = ({ caseId }) 
                 onInput={e => setFeedbackComment((e.target as HTMLTextAreaElement).value)}
                 rows={2}
                 style={{ borderRadius: '0.5rem', border: '1px solid var(--border-color)', padding: '0.5rem', fontSize: '1rem', background: 'var(--input-bg)', width: '100%' }}
+                disabled={feedbackSubmitted}
               />
-              <button type="submit" class="schedule-button" style={{ minWidth: 120 }} disabled={!feedback}>
-                Submit Feedback
-              </button>
-            </form>
+            </div>
           ) : (
             <div class="feedback-thankyou" style={{ color: 'var(--accent-color)', marginTop: '1rem' }}>Thank you for your feedback!</div>
           )}

@@ -85,6 +85,7 @@ export function App() {
     const messageListRef = useRef<HTMLDivElement>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [chatEnded, setChatEnded] = useState(false);
 
     // Track drag counter for better handling of nested elements
     const dragCounter = useRef(0);
@@ -990,7 +991,13 @@ export function App() {
                                 onTimeSlotSelect={handleTimeSlotSelect}
                                 onRequestMoreDates={handleRequestMoreDates}
                                 position={position}
+                                onSupportCaseFeedbackComplete={() => setChatEnded(true)}
                             />
+                            {chatEnded ? (
+                                <div className="chat-ended-message" style={{ textAlign: 'center', color: 'var(--accent-color)', margin: '2rem 0' }}>
+                                    <p>Thank you for your feedback!<br />The chat is now closed. <button className="schedule-button" style={{ marginTop: 8 }} onClick={() => { setMessages([introMessage]); setChatEnded(false); }}>Reset Chat</button></p>
+                                </div>
+                            ) : (
                             <div
                                 className="input-area"
                                 role="form"
@@ -1160,6 +1167,7 @@ export function App() {
                                     </div>
                                 </div>
                             </div>
+                            )}
                         </main>
                     )}
                 </ErrorBoundary>

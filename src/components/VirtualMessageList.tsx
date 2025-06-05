@@ -39,6 +39,7 @@ interface VirtualMessageListProps {
     onTimeSlotSelect?: (timeSlot: Date) => void;
     onRequestMoreDates?: () => void;
     position?: 'widget' | 'inline';
+    onSupportCaseFeedbackComplete?: () => void;
 }
 
 const BATCH_SIZE = 20;
@@ -52,7 +53,8 @@ const VirtualMessageList: FunctionComponent<VirtualMessageListProps> = ({
     onTimeOfDaySelect,
     onTimeSlotSelect,
     onRequestMoreDates,
-    position = 'widget'
+    position = 'widget',
+    onSupportCaseFeedbackComplete
 }) => {
     const listRef = useRef<HTMLDivElement>(null);
     const [startIndex, setStartIndex] = useState(Math.max(0, messages.length - BATCH_SIZE));
@@ -145,7 +147,7 @@ const VirtualMessageList: FunctionComponent<VirtualMessageListProps> = ({
                     if (message.type === 'support-case-form' && message.caseId) {
                         return (
                             <div class="message message-ai" key={startIndex + index}>
-                                <SupportCaseForm caseId={message.caseId} />
+                                <SupportCaseForm caseId={message.caseId} onFeedbackComplete={onSupportCaseFeedbackComplete} />
                             </div>
                         );
                     }
