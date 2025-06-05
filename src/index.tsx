@@ -838,28 +838,43 @@ export function App() {
         setSupportCaseSuccess(null);
         setMessages((prev) => [
             ...prev,
-            { content: "I'll help you create a support case. Let's get started.", isUser: false }
+            { content: "I'll help you create a support case. Let's get started.", isUser: false },
+            { content: 'What is your full name?', isUser: false }
         ]);
     };
+
+    // Validation helpers
+    const isValidName = (name: string) => name.trim().length > 1 && /[a-zA-Z]/.test(name);
+    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const isValidMessage = (msg: string) => msg.trim().length > 2;
 
     // Handle user input for support case steps
     const handleSupportCaseInput = async (input: string) => {
         if (supportCaseStep === 'name') {
+            if (!isValidName(input)) {
+                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "That doesn't look like a valid name. Please enter your full name.", isUser: false }]);
+                return;
+            }
             setSupportCaseData((prev) => ({ ...prev, name: input }));
-            setMessages((prev) => [...prev, { content: input, isUser: true }]);
+            setMessages((prev) => [...prev, { content: input, isUser: true }, { content: 'What is your email address?', isUser: false }]);
             setSupportCaseStep('email');
-            setMessages((prev) => [...prev, { content: 'What is your email address?', isUser: false }]);
         } else if (supportCaseStep === 'email') {
+            if (!isValidEmail(input)) {
+                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "That doesn't look like a valid email. Please enter a valid email address.", isUser: false }]);
+                return;
+            }
             setSupportCaseData((prev) => ({ ...prev, email: input }));
-            setMessages((prev) => [...prev, { content: input, isUser: true }]);
+            setMessages((prev) => [...prev, { content: input, isUser: true }, { content: 'Please describe your issue or question.', isUser: false }]);
             setSupportCaseStep('message');
-            setMessages((prev) => [...prev, { content: 'Please describe your issue or question.', isUser: false }]);
         } else if (supportCaseStep === 'message') {
+            if (!isValidMessage(input)) {
+                setMessages((prev) => [...prev, { content: input, isUser: true }, { content: "Please provide more details about your issue or question.", isUser: false }]);
+                return;
+            }
             setSupportCaseData((prev) => ({ ...prev, message: input }));
-            setMessages((prev) => [...prev, { content: input, isUser: true }]);
+            setMessages((prev) => [...prev, { content: input, isUser: true }, { content: 'Submitting your support case...', isUser: false }]);
             setSupportCaseStep('submitted');
             setSupportCaseLoading(true);
-            setMessages((prev) => [...prev, { content: 'Submitting your support case...', isUser: false }]);
             // Submit to API
             try {
                 const res = await fetch(`${supportCaseApiBase}/api/help-form`, {
