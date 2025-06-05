@@ -67,7 +67,7 @@ const RESIZE_DEBOUNCE_DELAY = 100;
 // API base URL for support case endpoints
 const supportCaseApiBase = import.meta.env.PROD
     ? 'https://compass-ts.paulchrisluke.workers.dev'
-    : 'http://localhost:8787';
+    : 'http://localhost:5173';
 
 export function App() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
